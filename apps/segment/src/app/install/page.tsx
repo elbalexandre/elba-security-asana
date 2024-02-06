@@ -38,8 +38,12 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useFormState } from 'react-dom';
+import { useSearchParams } from 'next/navigation';
 import styles from '../styles.module.css';
+import { install } from './action';
+import type { FormState } from './action';
 
 function Step({
   number,
@@ -88,6 +92,18 @@ function InstructionItems({ heading, instructions }: { heading: string; instruct
 
 function InstructionsModal() {
   const [active, setActive] = useState<string>('1');
+  const searchParams = useSearchParams();
+  const organisationId = searchParams.get('organisation_id');
+  const region = searchParams.get('region');
+
+  const [state, formAction] = useFormState<FormState, FormData>(install, {});
+
+  useEffect(() => {
+    if (state.redirectUrl) {
+      window.location.assign(state.redirectUrl);
+    }
+  }, [state, state.redirectUrl]);
+
   return (
     <div className={styles.container}>
       <div className={styles.modal}>
@@ -143,13 +159,35 @@ function InstructionsModal() {
           />
         )}
         {active === '3' && (
-          <InstructionItems
-            heading="Link Application"
-            instructions={[
-              'While still on the Created Token modal, click on the Copy button.',
-              'Paste the token value from your application below:',
-            ]}
-          />
+          <>
+            <InstructionItems
+              heading="Link Application"
+              instructions={[
+                'While still on the Created Token modal, click on the Copy button.',
+                'Paste the token value from your application below:',
+              ]}
+            />
+            <form action={formAction} className={styles.formContainer}>
+              <div role="group">
+                <label htmlFor="token">Token</label>
+                <input
+                  id="token"
+                  minLength={1}
+                  name="token"
+                  placeholder="YourTokenHere"
+                  type="text"
+                />
+                {state.errors?.token?.at(0) ? <span>{state.errors.token.at(0)}</span> : null}
+              </div>
+
+              {organisationId !== null && (
+                <input name="organisationId" type="hidden" value={organisationId} />
+              )}
+              {region !== null && <input name="region" type="hidden" value={region} />}
+
+              <button type="submit">Install</button>
+            </form>
+          </>
         )}
       </div>
     </div>
