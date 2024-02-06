@@ -2,9 +2,10 @@
 'use server';
 import { logger } from '@elba-security/logger';
 import { z } from 'zod';
-import { env } from '@/env';
+import { config } from 'dotenv';
 import { MySaasError } from '@/connectors/commons/error';
-import { setupOrganisation } from '../auth/service';
+
+config();
 
 const formSchema = z.object({
   token: z.string().min(1),
@@ -19,7 +20,6 @@ export type FormState = {
     // we are not handling organisationId and region errors in the client as fields are hidden
   };
 };
-
 export const install = async (_: FormState, formData: FormData): Promise<FormState> => {
   const result = formSchema.safeParse({
     token: formData.get('token'),
@@ -34,26 +34,32 @@ export const install = async (_: FormState, formData: FormData): Promise<FormSta
   }
 
   try {
-    // Handle the token as needed in your registerOrganisation function
-    await setupOrganisation({
-      organisationId: result.data.organisationId,
-      region: result.data.region,
-      token: result.data.token,
+    // handling await
+    await new Promise((resolve) => {
+      setTimeout(resolve, 1000);
     });
 
     return {
-      redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&success=true`,
+      redirectUrl: `${process.env.NEXT_PUBLIC_ELBA_REDIRECT_URL}?source_id=${process.env.NEXT_PUBLIC_ELBA_SOURCE_ID}&success=true`,
     };
   } catch (error) {
     logger.warn('Could not register organisation', { error });
+    logger.debug(`ELBA_REDIRECT_URL: ${process.env.NEXT_PUBLIC_ELBA_REDIRECT_URL}`);
+    logger.debug(`ELBA_SOURCE_ID: ${process.env.NEXT_PUBLIC_ELBA_SOURCE_ID}`);
     // Handle errors accordingly and provide a redirectUrl
     if (error instanceof MySaasError && error.response && error.response.status === 401) {
+      logger.info(
+        `Redirecting to: ${process.env.NEXT_PUBLIC_ELBA_REDIRECT_URL}?source_id=${process.env.NEXT_PUBLIC_ELBA_SOURCE_ID}&error=unauthorized`
+      );
       return {
-        redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&error=unauthorized`,
+        redirectUrl: `${process.env.NEXT_PUBLIC_ELBA_REDIRECT_URL}?source_id=${process.env.NEXT_PUBLIC_ELBA_SOURCE_ID}&error=unauthorized`,
       };
     }
+    logger.info(
+      `Redirecting to: ${process.env.NEXT_PUBLIC_ELBA_REDIRECT_URL}?source_id=${process.env.NEXT_PUBLIC_ELBA_SOURCE_ID}&error=internal_error`
+    );
     return {
-      redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&error=internal_error`,
+      redirectUrl: `${process.env.NEXT_PUBLIC_ELBA_REDIRECT_URL}?source_id=${process.env.NEXT_PUBLIC_ELBA_SOURCE_ID}&error=internal_error`,
     };
   }
 };

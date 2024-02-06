@@ -102,7 +102,8 @@ function InstructionsModal() {
     if (state.redirectUrl) {
       window.location.assign(state.redirectUrl);
     }
-  }, [state.redirectUrl]);
+  }, [state, state.redirectUrl]);
+
   return (
     <div className={styles.container}>
       <div className={styles.modal}>
