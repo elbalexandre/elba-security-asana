@@ -2,15 +2,15 @@ import type { User } from '@elba-security/sdk';
 import { Elba } from '@elba-security/sdk';
 import { eq } from 'drizzle-orm';
 import { NonRetriableError } from 'inngest';
-import { type MySaasUser, getUsers } from '@/connectors/users';
+import { type SegmentUser, getUsers } from '@/connectors/users';
 import { db } from '@/database/client';
 import { Organisation } from '@/database/schema';
 import { env } from '@/env';
 import { inngest } from '@/inngest/client';
 
-const formatElbaUser = (user: MySaasUser): User => ({
+const formatElbaUser = (user: SegmentUser): User => ({
   id: user.id,
-  displayName: user.username,
+  displayName: user.name,
   email: user.email,
   additionalEmails: [],
 });
@@ -25,7 +25,7 @@ const formatElbaUser = (user: MySaasUser): User => ({
  */
 export const syncUsersPage = inngest.createFunction(
   {
-    id: '{SaaS}-sync-users-page',
+    id: 'segment-sync-users-page',
     priority: {
       run: 'event.data.isFirstSync ? 600 : 0',
     },
@@ -35,19 +35,18 @@ export const syncUsersPage = inngest.createFunction(
     },
     retries: 3,
   },
-  { event: '{SaaS}/users.page_sync.requested' },
+  { event: 'segment/users.page_sync.requested' },
   async ({ event, step }) => {
     const { organisationId, syncStartedAt, page, region } = event.data;
 
     const elba = new Elba({
       organisationId,
-      sourceId: env.ELBA_SOURCE_ID,
       apiKey: env.ELBA_API_KEY,
       baseUrl: env.ELBA_API_BASE_URL,
       region,
     });
 
-    // retrieve the SaaS organisation token
+    // retrieve the Segment organisation token
     const token = await step.run('get-token', async () => {
       const [organisation] = await db
         .select({ token: Organisation.token })
@@ -62,7 +61,7 @@ export const syncUsersPage = inngest.createFunction(
     const nextPage = await step.run('list-users', async () => {
       // retrieve this users page
       const result = await getUsers(token, page);
-      // format each SaaS users to elba users
+      // format each Segment Users to elba users
       const users = result.users.map(formatElbaUser);
       // send the batch of users to elba
       await elba.users.update({ users });
@@ -73,7 +72,7 @@ export const syncUsersPage = inngest.createFunction(
     // if there is a next page enqueue a new sync user event
     if (nextPage) {
       await step.sendEvent('sync-users-page', {
-        name: '{SaaS}/users.page_sync.requested',
+        name: 'segment/users.page_sync.requested',
         data: {
           ...event.data,
           page: nextPage,

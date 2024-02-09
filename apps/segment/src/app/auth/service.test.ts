@@ -12,7 +12,7 @@ import * as authConnector from '@/connectors/auth';
 import { db } from '@/database/client';
 import { Organisation } from '@/database/schema';
 import { inngest } from '@/inngest/client';
-import { setupOrganisation } from './service';
+import { registerOrganisation } from './service';
 
 const code = 'some-code';
 const token = 'some-token';
@@ -25,7 +25,7 @@ const organisation = {
   region,
 };
 
-describe('setupOrganisation', () => {
+describe('registerOrganisation', () => {
   beforeAll(() => {
     vi.setSystemTime(now);
   });
@@ -43,9 +43,9 @@ describe('setupOrganisation', () => {
 
     // assert the function resolves without returning a value
     await expect(
-      setupOrganisation({
+      registerOrganisation({
         organisationId: organisation.id,
-        code,
+        token,
         region,
       })
     ).resolves.toBeUndefined();
@@ -90,9 +90,9 @@ describe('setupOrganisation', () => {
 
     // assert the function resolves without returning a value
     await expect(
-      setupOrganisation({
+      registerOrganisation({
         organisationId: organisation.id,
-        code,
+        token,
         region,
       })
     ).resolves.toBeUndefined();
@@ -137,9 +137,9 @@ describe('setupOrganisation', () => {
 
     // assert that the function throws the mocked error
     await expect(
-      setupOrganisation({
+      registerOrganisation({
         organisationId: organisation.id,
-        code,
+        token,
         region,
       })
     ).rejects.toThrowError(error);

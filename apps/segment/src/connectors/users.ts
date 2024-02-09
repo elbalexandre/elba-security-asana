@@ -8,16 +8,16 @@
 
 import { MySaasError } from './commons/error';
 
-export type MySaasUser = {
+export type SegmentUser = {
   id: string;
-  username: string;
+  name: string;
   email: string;
 };
 
-type GetUsersResponseData = { users: MySaasUser[]; nextPage: number | null };
+type GetUsersResponseData = { users: SegmentUser[]; nextPage: number | null };
 
 export const getUsers = async (token: string, page: number | null) => {
-  const response = await fetch(`https://mysaas.com/api/v1/users?page=${page}`, {
+  const response = await fetch(`https://api.segmentapis.com/users?pagination.count=${page}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) {

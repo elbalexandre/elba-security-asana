@@ -9,7 +9,7 @@ type SetupOrganisationParams = {
   region: string;
 };
 
-export const setupOrganisation = async ({
+export const registerOrganisation = async ({
   organisationId,
   token,
   region,
@@ -25,7 +25,7 @@ export const setupOrganisation = async ({
   });
 
   await inngest.send({
-    name: '{SaaS}/users.page_sync.requested',
+    name: 'segment/users.page_sync.requested',
     data: {
       isFirstSync: true,
       organisationId,
