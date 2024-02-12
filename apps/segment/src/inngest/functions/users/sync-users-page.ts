@@ -66,7 +66,10 @@ export const syncUsersPage = inngest.createFunction(
       // send the batch of users to elba
       await elba.users.update({ users });
 
-      return result.nextPage;
+      if (result.nextPage.next) {
+        return Number(atob(result.nextPage.next));
+      }
+      return null;
     });
 
     // if there is a next page enqueue a new sync user event

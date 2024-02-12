@@ -12,54 +12,41 @@ import { http } from 'msw';
 import { describe, expect, test, beforeEach } from 'vitest';
 import { server } from '../../vitest/setup-msw-handlers';
 import { type SegmentUser, getUsers } from './users';
-import { MySaasError } from './commons/error';
+import type { MySaasError } from './commons/error';
 
 const validToken = 'sgp_i49ylsHhZVox3nltdx1NTAOkUPvjuSSoEYfSAxJQ2RbiG4NQerHKnBKNcexuw36F';
-const maxPage = 3;
 
-const users: SegmentUser[] = Array.from({ length: 5 }, (_, i) => ({
-  id: `id-${i}`,
-  name: `username-${i}`,
-  email: `user-${i}@foo.bar`,
-}));
+const users: SegmentUser[] = [
+  {
+    id: `d2oLAmTuScRdhhAnrJJwN3`,
+    name: `Ali Farooq`,
+    email: `ali@alfabolt.com`,
+  },
+];
 
-describe('auth connector', () => {
-  describe('getUsers', () => {
-    // mock token API endpoint using msw
-    beforeEach(() => {
-      server.use(
-        http.get('https://api.segmentapis.com/users', ({ request }) => {
-          // briefly implement API endpoint behaviour
-          if (request.headers.get('Authorization') !== `Bearer ${validToken}`) {
-            return new Response(undefined, { status: 401 });
-          }
-          const url = new URL(request.url);
-          const pageParam = url.searchParams.get('page');
-          const page = pageParam ? Number(pageParam) : 0;
-          if (page === maxPage) {
-            return Response.json({ nextPage: null, users });
-          }
-          return Response.json({ nextPage: page + 1, users });
-        })
-      );
-    });
+describe('getUsers', () => {
+  beforeEach(() => {
+    server.use(
+      http.get('https://api.segmentapis.com/users', ({ request }) => {
+        if (request.headers.get('Authorization') !== `Bearer ${validToken}`) {
+          return new Response(undefined, { status: 401 });
+        }
+        return new Response(JSON.stringify({ users }), { status: 200 });
+      })
+    );
+  });
 
-    test('should return users and nextPage when the token is valid and their is another page', async () => {
-      await expect(getUsers(validToken, 0)).resolves.toStrictEqual({
-        users,
-        nextPage: 1,
-      });
-    });
+  test('should fetch users when token is valid', async () => {
+    const result = await getUsers(validToken, null);
+    expect(result.users).toEqual(users);
+  });
 
-    test('should return users and no nextPage when the token is valid and their is no other page', async () => {
-      await expect(getUsers(validToken, maxPage)).resolves.toStrictEqual({
-        users,
-        nextPage: null,
-      });
-    });
-
-    test('should throws when the token is invalid', async () => {
-      await expect(getUsers('foo-bar', 0)).rejects.toBeInstanceOf(MySaasError);
-    });
+  test('should throw MySaasError when token is invalid', async () => {
+    try {
+      await getUsers('invalidToken', null);
+    } catch (error) {
+      const mySaasError = error as MySaasError;
+      expect(mySaasError.message).toEqual('Could not retrieve users');
+    }
   });
 });

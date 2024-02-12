@@ -22,13 +22,13 @@ const organisation = {
 };
 const syncStartedAt = Date.now();
 
-const users: usersConnector.MySaasUser[] = Array.from({ length: 5 }, (_, i) => ({
+const users: usersConnector.SegmentUser[] = Array.from({ length: 5 }, (_, i) => ({
   id: `id-${i}`,
-  username: `username-${i}`,
+  name: `username-${i}`,
   email: `username-${i}@foo.bar`,
 }));
 
-const setup = createInngestFunctionMock(syncUsersPage, '{SaaS}/users.page_sync.requested');
+const setup = createInngestFunctionMock(syncUsersPage, 'segment/users.page_sync.requested');
 
 describe('sync-users', () => {
   test('should abort sync when organisation is not registered', async () => {
@@ -53,7 +53,7 @@ describe('sync-users', () => {
     await db.insert(Organisation).values(organisation);
     // mock the getUser function that returns SaaS users page
     vi.spyOn(usersConnector, 'getUsers').mockResolvedValue({
-      nextPage: 1,
+      nextPage: { current: '0', next: '1', previous: null, totalEntries: 10 },
       users,
     });
     const [result, { step }] = setup({
@@ -69,7 +69,7 @@ describe('sync-users', () => {
     // check that the function continue the pagination process
     expect(step.sendEvent).toBeCalledTimes(1);
     expect(step.sendEvent).toBeCalledWith('sync-users-page', {
-      name: '{SaaS}/users.page_sync.requested',
+      name: 'segment/users.page_sync.requested',
       data: {
         organisationId: organisation.id,
         isFirstSync: false,
@@ -84,7 +84,7 @@ describe('sync-users', () => {
     await db.insert(Organisation).values(organisation);
     // mock the getUser function that returns SaaS users page, but this time the response does not indicate that their is a next page
     vi.spyOn(usersConnector, 'getUsers').mockResolvedValue({
-      nextPage: null,
+      nextPage: { current: '0', next: null, previous: null, totalEntries: 10 },
       users,
     });
     const [result, { step }] = setup({
