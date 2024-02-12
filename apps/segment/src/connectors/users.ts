@@ -17,9 +17,15 @@ export type SegmentUser = {
 type GetUsersResponseData = { users: SegmentUser[]; nextPage: number | null };
 
 export const getUsers = async (token: string, page: number | null) => {
-  const response = await fetch(`https://api.segmentapis.com/users?pagination.count=${page}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  // Setting default value for pagination.count
+  const count = 200;
+
+  const response = await fetch(
+    `https://api.segmentapis.com/users?pagination.count=${count}&pagination.cursor=${page}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
   if (!response.ok) {
     throw new MySaasError('Could not retrieve users', { response });
   }
