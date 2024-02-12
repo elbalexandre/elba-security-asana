@@ -5,7 +5,6 @@
  * This might not fit your usecase if you are using a SDK to connect to the Saas.
  * These file illustrate potential scenarios and methodologies relevant for SaaS integration.
  */
-
 import { MySaasError } from './commons/error';
 
 export type SegmentUser = {
@@ -14,7 +13,14 @@ export type SegmentUser = {
   email: string;
 };
 
-type GetUsersResponseData = { users: SegmentUser[]; nextPage: number | null };
+export type Pagination = {
+  current: string;
+  next: string | null;
+  previous: string | null;
+  totalEntries: number;
+};
+
+type GetUsersResponseData = { users: SegmentUser[]; nextPage: Pagination };
 
 export const getUsers = async (token: string, page: number | null) => {
   // Setting default value for pagination.count

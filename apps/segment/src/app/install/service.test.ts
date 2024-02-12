@@ -8,13 +8,11 @@
  */
 import { expect, test, describe, vi, beforeAll, afterAll } from 'vitest';
 import { eq } from 'drizzle-orm';
-import * as authConnector from '@/connectors/auth';
 import { db } from '@/database/client';
 import { Organisation } from '@/database/schema';
 import { inngest } from '@/inngest/client';
 import { registerOrganisation } from './service';
 
-const code = 'some-code';
 const token = 'some-token';
 const region = 'us';
 const now = new Date();
@@ -39,7 +37,6 @@ describe('registerOrganisation', () => {
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
     // mock the getToken function to return a predefined token
-    const getToken = vi.spyOn(authConnector, 'getToken').mockResolvedValue(token);
 
     // assert the function resolves without returning a value
     await expect(
@@ -49,10 +46,6 @@ describe('registerOrganisation', () => {
         region,
       })
     ).resolves.toBeUndefined();
-
-    // check if getToken was called correctly
-    expect(getToken).toBeCalledTimes(1);
-    expect(getToken).toBeCalledWith(code);
 
     // verify the organisation token is set in the database
     await expect(
@@ -85,9 +78,6 @@ describe('registerOrganisation', () => {
     // pre-insert an organisation to simulate an existing entry
     await db.insert(Organisation).values(organisation);
 
-    // mock getToken as above
-    const getToken = vi.spyOn(authConnector, 'getToken').mockResolvedValue(token);
-
     // assert the function resolves without returning a value
     await expect(
       registerOrganisation({
@@ -96,10 +86,6 @@ describe('registerOrganisation', () => {
         region,
       })
     ).resolves.toBeUndefined();
-
-    // verify getToken usage
-    expect(getToken).toBeCalledTimes(1);
-    expect(getToken).toBeCalledWith(code);
 
     // check if the token in the database is updated
     await expect(
@@ -132,8 +118,6 @@ describe('registerOrganisation', () => {
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
     const error = new Error('invalid code');
-    // mock getToken to reject with a dumb error for an invalid code
-    const getToken = vi.spyOn(authConnector, 'getToken').mockRejectedValue(error);
 
     // assert that the function throws the mocked error
     await expect(
@@ -143,10 +127,6 @@ describe('registerOrganisation', () => {
         region,
       })
     ).rejects.toThrowError(error);
-
-    // verify getToken usage
-    expect(getToken).toBeCalledTimes(1);
-    expect(getToken).toBeCalledWith(code);
 
     // ensure no organisation is added or updated in the database
     await expect(
