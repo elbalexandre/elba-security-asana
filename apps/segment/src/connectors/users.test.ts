@@ -11,15 +11,15 @@
 import { http } from 'msw';
 import { describe, expect, test, beforeEach } from 'vitest';
 import { server } from '../../vitest/setup-msw-handlers';
-import { type MySaasUser, getUsers } from './users';
+import { type SegmentUser, getUsers } from './users';
 import { MySaasError } from './commons/error';
 
-const validToken = 'token-1234';
+const validToken = 'sgp_i49ylsHhZVox3nltdx1NTAOkUPvjuSSoEYfSAxJQ2RbiG4NQerHKnBKNcexuw36F';
 const maxPage = 3;
 
-const users: MySaasUser[] = Array.from({ length: 5 }, (_, i) => ({
+const users: SegmentUser[] = Array.from({ length: 5 }, (_, i) => ({
   id: `id-${i}`,
-  username: `username-${i}`,
+  name: `username-${i}`,
   email: `user-${i}@foo.bar`,
 }));
 
@@ -28,7 +28,7 @@ describe('auth connector', () => {
     // mock token API endpoint using msw
     beforeEach(() => {
       server.use(
-        http.get('https://mysaas.com/api/v1/users', ({ request }) => {
+        http.get('https://api.segmentapis.com/users', ({ request }) => {
           // briefly implement API endpoint behaviour
           if (request.headers.get('Authorization') !== `Bearer ${validToken}`) {
             return new Response(undefined, { status: 401 });
