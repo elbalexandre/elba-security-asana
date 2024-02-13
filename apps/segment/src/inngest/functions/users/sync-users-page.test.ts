@@ -1,12 +1,3 @@
-/**
- * DISCLAIMER:
- * The tests provided in this file are specifically designed for the `syncUsersPage` function example.
- * These tests serve as a conceptual framework and are not intended to be used as definitive tests in a production environment.
- * They are meant to illustrate potential test scenarios and methodologies that might be relevant for a SaaS integration.
- * Developers should create their own tests tailored to the specific implementation details and requirements of their SaaS integration.
- * The mock data, assertions, and scenarios used here are simplified and may not cover all edge cases or real-world complexities.
- * It is crucial to expand upon these tests, adapting them to the actual logic and behaviors of your specific SaaS integration.
- */
 import { expect, test, describe, vi } from 'vitest';
 import { createInngestFunctionMock } from '@elba-security/test-utils';
 import { NonRetriableError } from 'inngest';
@@ -46,7 +37,7 @@ describe('sync-users', () => {
   test('should continue the sync when there is a next page', async () => {
     // setup the test with an organisation
     await db.insert(Organisation).values(organisation);
-    // mock the getUser function that returns SaaS users page
+    // mock the getUser function that returns Segment users page
     vi.spyOn(usersConnector, 'getUsers').mockResolvedValue({
       nextPage: { current: '0', next: '1', previous: null, totalEntries: 10 },
       users,
@@ -77,7 +68,7 @@ describe('sync-users', () => {
 
   test('should finalize the sync when there is a no next page', async () => {
     await db.insert(Organisation).values(organisation);
-    // mock the getUser function that returns SaaS users page, but this time the response does not indicate that their is a next page
+    // mock the getUser function that returns Segment users page, but this time the response does not indicate that their is a next page
     vi.spyOn(usersConnector, 'getUsers').mockResolvedValue({
       nextPage: { current: '0', next: null, previous: null, totalEntries: 10 },
       users,
