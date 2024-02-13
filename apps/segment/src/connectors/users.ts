@@ -5,7 +5,7 @@
  * This might not fit your usecase if you are using a SDK to connect to the Saas.
  * These file illustrate potential scenarios and methodologies relevant for SaaS integration.
  */
-import { MySaasError } from './commons/error';
+import { SegmentError } from './commons/error';
 
 export type SegmentUser = {
   id: string;
@@ -33,7 +33,7 @@ export const getUsers = async (token: string, page: number | null) => {
     }
   );
   if (!response.ok) {
-    throw new MySaasError('Could not retrieve users', { response });
+    throw new SegmentError('Could not retrieve users', response.status, { response });
   }
   return response.json() as Promise<GetUsersResponseData>;
 };

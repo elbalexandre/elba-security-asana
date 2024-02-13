@@ -12,7 +12,7 @@ import { http } from 'msw';
 import { describe, expect, test, beforeEach } from 'vitest';
 import { server } from '../../vitest/setup-msw-handlers';
 import { type SegmentUser, getUsers } from './users';
-import type { MySaasError } from './commons/error';
+import type { SegmentError } from './commons/error';
 
 const validToken = 'sgp_i49ylsHhZVox3nltdx1NTAOkUPvjuSSoEYfSAxJQ2RbiG4NQerHKnBKNcexuw36F';
 
@@ -41,12 +41,12 @@ describe('getUsers', () => {
     expect(result.users).toEqual(users);
   });
 
-  test('should throw MySaasError when token is invalid', async () => {
+  test('should throw SegmentError when token is invalid', async () => {
     try {
       await getUsers('invalidToken', null);
     } catch (error) {
-      const mySaasError = error as MySaasError;
-      expect(mySaasError.message).toEqual('Could not retrieve users');
+      const SegmentError = error as SegmentError;
+      expect(SegmentError.message).toEqual('Could not retrieve users');
     }
   });
 });

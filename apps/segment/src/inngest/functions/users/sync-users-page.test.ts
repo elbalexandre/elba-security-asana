@@ -14,6 +14,7 @@ import * as usersConnector from '@/connectors/users';
 import { db } from '@/database/client';
 import { Organisation } from '@/database/schema';
 import { syncUsersPage } from './sync-users-page';
+import { users } from './__mocks__/integration';
 
 const organisation = {
   id: '45a76301-f1dd-4a77-b12f-9d7d3fca3c90',
@@ -21,12 +22,6 @@ const organisation = {
   region: 'us',
 };
 const syncStartedAt = Date.now();
-
-const users: usersConnector.SegmentUser[] = Array.from({ length: 5 }, (_, i) => ({
-  id: `id-${i}`,
-  name: `username-${i}`,
-  email: `username-${i}@foo.bar`,
-}));
 
 const setup = createInngestFunctionMock(syncUsersPage, 'segment/users.page_sync.requested');
 
@@ -61,7 +56,7 @@ describe('sync-users', () => {
       isFirstSync: false,
       syncStartedAt,
       page: 0,
-      region: 'us',
+      region: organisation.region,
     });
 
     await expect(result).resolves.toStrictEqual({ status: 'ongoing' });

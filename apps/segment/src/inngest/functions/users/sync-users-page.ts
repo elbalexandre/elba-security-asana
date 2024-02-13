@@ -33,10 +33,16 @@ export const syncUsersPage = inngest.createFunction(
       key: 'event.data.organisationId',
       limit: 1,
     },
-    retries: 3,
+    retries: env.USERS_SYNC_MAX_RETRY,
+    cancelOn: [
+      {
+        event: 'segment/segment.elba_app.uninstalled',
+        match: 'data.organisationId',
+      },
+    ],
   },
   { event: 'segment/users.page_sync.requested' },
-  async ({ event, step }) => {
+  async ({ event, step, logger }) => {
     const { organisationId, syncStartedAt, page, region } = event.data;
 
     const elba = new Elba({
@@ -64,10 +70,11 @@ export const syncUsersPage = inngest.createFunction(
       // format each Segment Users to elba users
       const users = result.users.map(formatElbaUser);
       // send the batch of users to elba
+      logger.debug('Sending batch of users to elba: ', { organisationId, users });
       await elba.users.update({ users });
 
       if (result.nextPage.next) {
-        return Number(atob(result.nextPage.next));
+        return result.nextPage.next;
       }
       return null;
     });
@@ -78,7 +85,7 @@ export const syncUsersPage = inngest.createFunction(
         name: 'segment/users.page_sync.requested',
         data: {
           ...event.data,
-          page: nextPage,
+          page: Number(nextPage),
         },
       });
       return {
