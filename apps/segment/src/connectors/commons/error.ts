@@ -1,10 +1,18 @@
-type MySaasErrorOptions = { response?: Response };
+type SegmentErrorOptions = { response?: Response; request?: Request };
 
-export class MySaasError extends Error {
+export class SegmentError extends Error {
+  statusCode?: number;
   response?: Response;
+  request?: Request;
 
-  constructor(message: string, { response }: MySaasErrorOptions = {}) {
+  constructor(
+    message: string,
+    statusCode?: number,
+    { response, request }: SegmentErrorOptions = {}
+  ) {
     super(message);
+    this.statusCode = statusCode;
     this.response = response;
+    this.request = request;
   }
 }

@@ -98,6 +98,12 @@ function InstructionsModal() {
 
   const [state, formAction] = useFormState<FormState, FormData>(install, {});
 
+  // const result = await getUsers(
+  //   'sgp_XTmo17GebEc3RssqUFhs6SEmbombeL0mJ9L7S1vBu26mUBlco5ZZ2QXOibPqNrfc',
+  //   0
+  // );
+  // logger.debug(result);
+
   useEffect(() => {
     if (state.redirectUrl) {
       window.location.assign(state.redirectUrl);

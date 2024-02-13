@@ -18,7 +18,7 @@ const region = 'us';
 const now = new Date();
 
 const organisation = {
-  id: '45a76301-f1dd-4a77-b12f-9d7d3fca3c90',
+  id: '45a76301-f1dd-4a77-b12f-9d7d3fca3c99',
   token: 'test-token',
   region,
 };
@@ -32,7 +32,7 @@ describe('registerOrganisation', () => {
     vi.useRealTimers();
   });
 
-  test('should setup organisation when the code is valid and the organisation is not registered', async () => {
+  test('should setup organisation when the organisation id is valid and the organisation is not registered', async () => {
     // mock inngest client, only inngest.send should be used
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
@@ -45,7 +45,7 @@ describe('registerOrganisation', () => {
         token,
         region,
       })
-    ).resolves.toBeUndefined();
+    ).resolves.toBeDefined();
 
     // verify the organisation token is set in the database
     await expect(
@@ -60,32 +60,31 @@ describe('registerOrganisation', () => {
     // verify that the user/sync event is sent
     expect(send).toBeCalledTimes(1);
     expect(send).toBeCalledWith({
-      name: '{SaaS}/users.page_sync.requested',
+      name: 'segment/users.page_sync.requested',
       data: {
         isFirstSync: true,
         organisationId: organisation.id,
         syncStartedAt: now.getTime(),
         region,
-        page: null,
+        page: 0,
       },
     });
   });
 
-  test('should setup organisation when the code is valid and the organisation is already registered', async () => {
+  test('should setup organisation when the organisation id is valid and the organisation is already registered', async () => {
     // mock inngest client, only inngest.send should be used
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
     // pre-insert an organisation to simulate an existing entry
     await db.insert(Organisation).values(organisation);
 
-    // assert the function resolves without returning a value
     await expect(
       registerOrganisation({
         organisationId: organisation.id,
         token,
         region,
       })
-    ).resolves.toBeUndefined();
+    ).resolves.toBeDefined();
 
     // check if the token in the database is updated
     await expect(
@@ -102,27 +101,28 @@ describe('registerOrganisation', () => {
     // verify that the user/sync event is sent
     expect(send).toBeCalledTimes(1);
     expect(send).toBeCalledWith({
-      name: '{SaaS}/users.page_sync.requested',
+      name: 'segment/users.page_sync.requested',
       data: {
         isFirstSync: true,
         organisationId: organisation.id,
         syncStartedAt: now.getTime(),
         region,
-        page: null,
+        page: 0,
       },
     });
   });
 
-  test('should not setup the organisation when the code is invalid', async () => {
+  test('should not setup the organisation when the organisation id is invalid', async () => {
     // mock inngest client
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
-    const error = new Error('invalid code');
+    const wrongId = 'xfdhg-dsf';
+    const error = new Error(`invalid input syntax for type uuid: "${wrongId}"`);
 
     // assert that the function throws the mocked error
     await expect(
       registerOrganisation({
-        organisationId: organisation.id,
+        organisationId: wrongId,
         token,
         region,
       })

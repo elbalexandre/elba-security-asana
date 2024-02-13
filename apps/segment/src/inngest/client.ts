@@ -15,6 +15,11 @@ export const inngest = new Inngest({
         page: number | null;
       };
     };
+    'segment/segment.elba_app.uninstalled': {
+      data: {
+        organisationId: string;
+      };
+    };
   }>(),
   middleware: [rateLimitMiddleware, sentryMiddleware],
   logger,
