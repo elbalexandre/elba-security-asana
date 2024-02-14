@@ -51,7 +51,7 @@ export const install = async (_: FormState, formData: FormData): Promise<FormSta
     };
   } catch (error) {
     logger.warn('Could not register organisation', { error });
-    if (error instanceof SegmentError && error.response && error.response.status === 401) {
+    if (error instanceof SegmentError && error.response?.status === 401) {
       return {
         redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&error=unauthorized`,
       };

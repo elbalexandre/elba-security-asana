@@ -1,7 +1,7 @@
 import { http } from 'msw';
 import { describe, expect, test, beforeEach } from 'vitest';
 import { server } from '../../vitest/setup-msw-handlers';
-import { type SegmentUser, getUsers } from './users';
+import { type SegmentUser, type Pagination, getUsers } from './users';
 import type { SegmentError } from './commons/error';
 
 const validToken = 'sgp_i49ylsHhZVox3nltdx1NTAOkUPvjuSSoEYfSAxJQ2RbiG4NQerHKnBKNcexuw36F';
@@ -14,6 +14,13 @@ const users: SegmentUser[] = [
   },
 ];
 
+const pagination: Pagination = {
+  current: '1',
+  next: null,
+  previous: null,
+  totalEntries: users.length,
+};
+
 describe('getUsers', () => {
   beforeEach(() => {
     server.use(
@@ -21,7 +28,7 @@ describe('getUsers', () => {
         if (request.headers.get('Authorization') !== `Bearer ${validToken}`) {
           return new Response(undefined, { status: 401 });
         }
-        return new Response(JSON.stringify({ users }), { status: 200 });
+        return new Response(JSON.stringify({ users, nextPage: pagination }), { status: 200 });
       })
     );
   });
@@ -35,8 +42,13 @@ describe('getUsers', () => {
     try {
       await getUsers('invalidToken', null);
     } catch (error) {
-      const SegmentError = error as SegmentError;
-      expect(SegmentError.message).toEqual('Could not retrieve users');
+      const segmentError = error as SegmentError;
+      expect(segmentError.message).toEqual('Could not retrieve users');
     }
+  });
+
+  test('should return nextPage.next as null when end of list is reached', async () => {
+    const result = await getUsers(validToken, null);
+    expect(result.nextPage.next).toBeNull();
   });
 });
