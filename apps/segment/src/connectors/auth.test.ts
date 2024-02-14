@@ -23,7 +23,7 @@ describe('validateToken', () => {
     expect(result).toEqual(200);
   });
 
-  test('should return status code 403 when token is invalid', async () => {
+  test('should return status code 401 when token is invalid', async () => {
     const result = await validateToken('invalidToken');
     expect(result).toEqual(401);
   });
