@@ -1,10 +1,9 @@
 import { http } from 'msw';
 import { describe, expect, test, beforeEach } from 'vitest';
+import { env } from '@/env';
 import { server } from '../../vitest/setup-msw-handlers';
 import { type SegmentUser, type Pagination, getUsers } from './users';
 import type { SegmentError } from './commons/error';
-
-const validToken = 'sgp_i49ylsHhZVox3nltdx1NTAOkUPvjuSSoEYfSAxJQ2RbiG4NQerHKnBKNcexuw36F';
 
 const users: SegmentUser[] = [
   {
@@ -20,6 +19,8 @@ const pagination: Pagination = {
   previous: null,
   totalEntries: users.length,
 };
+
+const validToken = env.SEGMENT_API_TOKEN;
 
 describe('getUsers', () => {
   beforeEach(() => {
@@ -47,7 +48,7 @@ describe('getUsers', () => {
     }
   });
 
-  test('should return nextPage.next as null when end of list is reached', async () => {
+  test('should return nextPage as null when end of list is reached', async () => {
     const result = await getUsers(validToken, null);
     expect(result.nextPage.next).toBeNull();
   });

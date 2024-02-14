@@ -33,7 +33,7 @@ describe('rate-limit middleware', () => {
   test('should transform the output error to RetryAfterError when the error is about segment rate limit', () => {
     const rateLimitReset = '1700137003';
 
-    const rateLimitError = new SegmentError('foo bar', 429, {
+    const rateLimitError = new SegmentError('foo bar', {
       response: {
         // @ts-expect-error -- this is a mock
         headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': rateLimitReset },
