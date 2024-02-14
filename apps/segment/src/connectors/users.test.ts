@@ -1,11 +1,3 @@
-/**
- * DISCLAIMER:
- * The tests provided in this file are specifically designed for the `auth` connectors function.
- * Theses tests exists because the services & inngest functions using this connector mock it.
- * If you are using an SDK we suggest you to mock it not to implements calls using msw.
- * These file illustrate potential scenarios and methodologies relevant for SaaS integration.
- */
-
 import { http } from 'msw';
 import { describe, expect, test, beforeEach } from 'vitest';
 import { server } from '../../vitest/setup-msw-handlers';

@@ -1,11 +1,3 @@
-/**
- * DISCLAIMER:
- * The tests provided in this file are specifically designed for the `setupOrganisation` function.
- * These tests illustrate potential scenarios and methodologies relevant for SaaS integration.
- * Developers should create tests tailored to their specific implementation and requirements.
- * Mock data and assertions here are simplified and may not cover all real-world complexities.
- * Expanding upon these tests to fit the actual logic and behaviors of specific integrations is crucial.
- */
 import { expect, test, describe, vi, beforeAll, afterAll } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { db } from '@/database/client';
@@ -33,12 +25,8 @@ describe('registerOrganisation', () => {
   });
 
   test('should setup organisation when the organisation id is valid and the organisation is not registered', async () => {
-    // mock inngest client, only inngest.send should be used
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
-    // mock the getToken function to return a predefined token
-
-    // assert the function resolves without returning a value
     await expect(
       registerOrganisation({
         organisationId: organisation.id,
@@ -47,7 +35,6 @@ describe('registerOrganisation', () => {
       })
     ).resolves.toBeDefined();
 
-    // verify the organisation token is set in the database
     await expect(
       db.select().from(Organisation).where(eq(Organisation.id, organisation.id))
     ).resolves.toMatchObject([
@@ -57,7 +44,6 @@ describe('registerOrganisation', () => {
       },
     ]);
 
-    // verify that the user/sync event is sent
     expect(send).toBeCalledTimes(1);
     expect(send).toBeCalledWith({
       name: 'segment/users.page_sync.requested',
@@ -72,7 +58,6 @@ describe('registerOrganisation', () => {
   });
 
   test('should setup organisation when the organisation id is valid and the organisation is already registered', async () => {
-    // mock inngest client, only inngest.send should be used
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
     // pre-insert an organisation to simulate an existing entry
@@ -113,7 +98,6 @@ describe('registerOrganisation', () => {
   });
 
   test('should not setup the organisation when the organisation id is invalid', async () => {
-    // mock inngest client
     // @ts-expect-error -- this is a mock
     const send = vi.spyOn(inngest, 'send').mockResolvedValue(undefined);
     const wrongId = 'xfdhg-dsf';
