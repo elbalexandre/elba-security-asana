@@ -3,6 +3,7 @@ import { logger } from '@elba-security/logger';
 import { z } from 'zod';
 import { SegmentError } from '@/connectors/commons/error';
 import { env } from '@/env';
+import { validateToken } from '@/connectors/auth';
 import { registerOrganisation } from './service';
 
 const formSchema = z.object({
@@ -45,13 +46,19 @@ export const install = async (_: FormState, formData: FormData): Promise<FormSta
 
   try {
     // handling await
-    await registerOrganisation({ organisationId, token, region });
+    const statusCode = await validateToken(token);
+    if (statusCode === 200) {
+      await registerOrganisation({ organisationId, token, region });
+      return {
+        redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&success=true`,
+      };
+    }
     return {
-      redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&success=true`,
+      redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&error=unauthorized`,
     };
   } catch (error) {
     logger.warn('Could not register organisation', { error });
-    if (error instanceof SegmentError && error.response && error.response.status === 401) {
+    if (error instanceof SegmentError && error.response?.status === 401) {
       return {
         redirectUrl: `${env.ELBA_REDIRECT_URL}?source_id=${env.ELBA_SOURCE_ID}&error=unauthorized`,
       };

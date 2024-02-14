@@ -1,20 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call -- test conveniency */
-/* eslint-disable @typescript-eslint/no-unsafe-return -- test conveniency */
-/**
- * DISCLAIMER:
- * The tests provided in this file are specifically designed for the `auth` connectors function.
- * Theses tests exists because the services & inngest functions using this connector mock it.
- * If you are using an SDK we suggest you to mock it not to implements calls using msw.
- * These file illustrate potential scenarios and methodologies relevant for SaaS integration.
- */
-
 import { http } from 'msw';
 import { describe, expect, test, beforeEach } from 'vitest';
+import { env } from '@/env';
 import { server } from '../../vitest/setup-msw-handlers';
-import { type SegmentUser, getUsers } from './users';
+import { type SegmentUser, type Pagination, getUsers } from './users';
 import type { SegmentError } from './commons/error';
-
-const validToken = 'sgp_i49ylsHhZVox3nltdx1NTAOkUPvjuSSoEYfSAxJQ2RbiG4NQerHKnBKNcexuw36F';
 
 const users: SegmentUser[] = [
   {
@@ -24,6 +13,15 @@ const users: SegmentUser[] = [
   },
 ];
 
+const pagination: Pagination = {
+  current: '1',
+  next: null,
+  previous: null,
+  totalEntries: users.length,
+};
+
+const validToken = env.SEGMENT_API_TOKEN;
+
 describe('getUsers', () => {
   beforeEach(() => {
     server.use(
@@ -31,7 +29,7 @@ describe('getUsers', () => {
         if (request.headers.get('Authorization') !== `Bearer ${validToken}`) {
           return new Response(undefined, { status: 401 });
         }
-        return new Response(JSON.stringify({ users }), { status: 200 });
+        return new Response(JSON.stringify({ users, nextPage: pagination }), { status: 200 });
       })
     );
   });
@@ -45,8 +43,13 @@ describe('getUsers', () => {
     try {
       await getUsers('invalidToken', null);
     } catch (error) {
-      const SegmentError = error as SegmentError;
-      expect(SegmentError.message).toEqual('Could not retrieve users');
+      const segmentError = error as SegmentError;
+      expect(segmentError.message).toEqual('Could not retrieve users');
     }
+  });
+
+  test('should return nextPage as null when end of list is reached', async () => {
+    const result = await getUsers(validToken, null);
+    expect(result.nextPage.next).toBeNull();
   });
 });
