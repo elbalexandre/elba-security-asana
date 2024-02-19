@@ -16,7 +16,7 @@ export type Pagination = {
 
 type GetUsersResponseData = { users: SegmentUser[]; nextPage: Pagination };
 
-export const getUsers = async (token: string, page: number | null) => {
+export const getUsers = async (token: string, page: string | null) => {
   const response = await fetch(
     `https://api.segmentapis.com/users?pagination.count=${env.USERS_SYNC_BATCH_SIZE}&pagination.cursor=${page}`,
     {
