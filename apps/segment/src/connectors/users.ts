@@ -1,3 +1,4 @@
+import { env } from '@/env';
 import { SegmentError } from './commons/error';
 
 export type SegmentUser = {
@@ -16,11 +17,8 @@ export type Pagination = {
 type GetUsersResponseData = { users: SegmentUser[]; nextPage: Pagination };
 
 export const getUsers = async (token: string, page: number | null) => {
-  // Setting default value for pagination.count
-  const count = 200;
-
   const response = await fetch(
-    `https://api.segmentapis.com/users?pagination.count=${count}&pagination.cursor=${page}`,
+    `https://api.segmentapis.com/users?pagination.count=${env.USERS_SYNC_BATCH_SIZE}&pagination.cursor=${page}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
